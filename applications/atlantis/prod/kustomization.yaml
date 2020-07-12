@@ -1,0 +1,6 @@
+bases:
+- ../base
+- ingress.yaml
+
+resources:
+- ./env-config.yaml

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: consul-template-config
+data:
+  config.hcl: |
+    "vault" = {
+      "vault_agent_token_file" = "/vault/secrets/.vault-token"
+      "renew_token" = false
+    }
+    template {
+      source = "/consul-template-config/.env.hcl"
+      destination = "/vault/secrets/.env"
+    }
+  .env.hcl: |
+    {{ with secret "kv/atlantis" }}
+    export ATLANTIS_GH_TOKEN='{{ .Data.data.ATLANTIS_GH_TOKEN }}'
+    export ATLANTIS_GH_WEBHOOK_SECRET='{{ .Data.data.ATLANTIS_GH_WEBHOOK_SECRET }}'
+    {{ end }}

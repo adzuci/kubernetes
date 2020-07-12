@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: repo-kubernetes-deploy-key
+  annotations:
+    managed-by: argocd.argoproj.io
+  namespace: argocd
+  selfLink: /api/v1/namespaces/argocd/secrets/repo-kubernetes-deploy-key
+data:
+  sshPrivateKey: <key>

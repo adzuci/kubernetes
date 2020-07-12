@@ -1,0 +1,12 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+spec:
+  source:
+    path: applications/argocd/development
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,2 @@
+resources:
+  - selfsigningissuer.yaml

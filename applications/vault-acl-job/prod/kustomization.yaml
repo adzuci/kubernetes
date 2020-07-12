@@ -1,0 +1,10 @@
+bases:
+  - ../base/
+
+configMapGenerator:
+- name: vault-acl-job-cm
+  behavior: merge
+  files:
+    - acls.sh
+  literals:
+    - VAULT_ADDR="http://prod-vault:8200"

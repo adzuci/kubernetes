@@ -1,0 +1,23 @@
+nginx-ingress:
+  controller:
+    ingressClass: github-webhook
+      enabled: true
+      enable-ssl-passthrough: ""
+    service:
+      type: NodePort
+
+  # resources:
+  #   limits:
+  #     cpu: 100m
+  #     memory: 250Mi
+  #   requests:
+  #     cpu: 50m
+  #     memory: 100Mi
+  # defaultBackend:
+  #   resources:
+  #     limits:
+  #       cpu: 100m
+  #       memory: 250Mi
+  #     requests:
+  #       cpu: 50m
+  #       memory: 100Mi

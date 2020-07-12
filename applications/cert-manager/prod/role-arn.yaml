@@ -1,0 +1,4 @@
+# Patch in the config to talk to the forwarder
+- op: add
+  path: /metadata/annotations/eks.amazonaws.com~1role-arn
+  value: "arn:aws:iam::<id>:role/prod-eks-certmanager"

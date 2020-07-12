@@ -1,0 +1,66 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+- ../../../applications/argocd
+- ../../../applications/metrics-server/install
+- ../../../applications/kube-state-metrics/install
+#- ../../../applications/vault/install
+#- ../../../applications/vault-acl-job/prod/install
+- ../../../applications/public-ingress/install
+- ../../../applications/cluster-autoscaler/install
+#- ../../../applications/cert-manager-resources/prod/install
+#- ../../../applications/cert-manager/prod/install
+
+namePrefix: prod-
+patches:
+- target:
+    group: argoproj.io
+    version: v1alpha1
+    kind: Application
+  path: branch.yaml
+
+# What values.yaml should this cluster use for ALL HELM applications
+- target:
+    group: argoproj.io
+    version: v1alpha1
+    kind: Application
+    labelSelector: deployMethod=helm
+  patch: |-
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: not-relevant-to-patch
+      spec:
+        source:
+          helm:
+            valueFiles:
+            - values.yaml
+            - prod.yaml
+
+# What EKS cluster to install into
+- target:
+    group: argoproj.io
+    version: v1alpha1
+    kind: Application
+  patch: |-
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: not-relevant-to-patch
+      spec:
+        destination:
+          server: 'https://<id>.gr7.us-east-1.eks.amazonaws.com'
+
+# Set the finalizer so that cascade deletes are default since we do not store data in the cluster
+- target:
+    group: argoproj.io
+    version: v1alpha1
+    kind: Application
+  patch: |-
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: not-relevant-to-patch
+        finalizers:
+          - resources-finalizer.argocd.argoproj.io

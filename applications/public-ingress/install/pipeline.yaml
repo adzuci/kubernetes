@@ -1,0 +1,45 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: public-ingress-manifests
+spec:
+  destination:
+    namespace: public-ingress
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/public-ingress/manifests
+    repoURL: git@github.com:adzuci/kubernetes.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: public-ingress
+  labels:
+    deployMethod: helm
+spec:
+  destination:
+    namespace: public-ingress
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/public-ingress
+    repoURL: git@github.com:adzuci/kubernetes.git
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - values.yaml
+  ignoreDifferences:
+  - kind: Service
+    jsonPointers:
+    - /spec/clusterIP
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

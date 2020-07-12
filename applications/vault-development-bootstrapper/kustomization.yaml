@@ -1,0 +1,3 @@
+resources:
+- vault-development-bootstrapper-cm.yaml
+- vault-development-bootstrapper.yaml

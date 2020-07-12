@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+data:
+  # https://argoproj.github.io/argo-cd/faq/#why-is-my-app-out-of-sync-even-after-syncing
+  # https://github.com/argoproj/argo-cd/issues/1250
+  application.instanceLabelKey: argocd.argoproj.io/instance
+  statusbadge.enabled: 'true'
+  repositories: |
+    - url: git@github.com:adzuci/kubernetes.git
+      sshPrivateKeySecret:
+        key: sshPrivateKey
+        name: repo-kubernetes-deploy-key
+    - url: https://<url>
+  resource.customizations: |
+    admissionregistration.k8s.io/MutatingWebhookConfiguration:
+      ignoreDifferences: |
+        jsonPointers:
+        - /webhooks/0/clientConfig/caBundle

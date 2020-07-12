@@ -1,0 +1,12 @@
+cluster-autoscaler: 
+  rbac:
+    create: true
+    serviceAccountAnnotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::<id>:role/prod-dyhedral-eks-autoscaler"
+  cloudProvider: aws
+  awsRegion: us-east-1
+
+  autoDiscovery:
+    clusterName: prod-dyhedral-eks
+    enabled: true
+

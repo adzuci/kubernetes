@@ -1,0 +1,30 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-development-bootstrapper-job
+  namespace: vault
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: vault-wait
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nslookup development-vault; do sleep 2; done;']
+      containers:
+      - name: vault-development-bootstrapper-job
+        image: vault:latest
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "/vault-development-bootstrapper-cm/start.sh" ]
+        # args: [ "while true; do echo \"ka thump\"; sleep 30; done;" ]
+        volumeMounts:
+        - name: vault-development-bootstrapper-cm
+          mountPath: /vault-development-bootstrapper-cm
+      volumes:
+        - name: vault-development-bootstrapper-cm
+          configMap:
+            name: vault-development-bootstrapper-cm
+            defaultMode: 0550
+      restartPolicy: Never
+      serviceAccount: development-vault
+  backoffLimit: 20

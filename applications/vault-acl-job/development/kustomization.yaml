@@ -1,0 +1,11 @@
+bases:
+  - ../base/
+
+configMapGenerator:
+- name: vault-acl-job-cm
+  behavior: merge
+  files:
+    - acls.sh
+    - app.hcl
+  literals:
+    - VAULT_ADDR="http://development-vault:8200"

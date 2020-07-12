@@ -1,0 +1,13 @@
+bases:
+- ../base
+resources:
+  - argocd-ingress.yaml
+  - cluster-secret-prod-dyhedral.yaml
+patchesStrategicMerge:
+  - argocd-cm.yaml
+  - argocd-rbac-cm.yaml
+  - argocd-secret.yaml
+  - argocd-application-controller-sa.yaml
+  - argocd-application-controller-deployment.yaml
+  - argocd-server-sa.yaml
+  - argocd-server-deployment.yaml

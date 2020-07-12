@@ -1,0 +1,27 @@
+nginx-ingress:
+  controller:
+    ingressClass: github-webhook 
+    publishService:
+      enabled: true 
+    extraArgs:
+      enable-ssl-passthrough: ""
+    service:
+      loadBalancerSourceRanges:
+      - 192.30.252.0/22
+      - 185.199.108.0/22
+      - 140.82.112.0/20
+    resources:
+      limits:
+        cpu: 100m
+        memory: 250Mi
+      requests:
+        cpu: 50m
+        memory: 100Mi
+  defaultBackend:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 250Mi
+      requests:
+        cpu: 50m
+        memory: 100Mi

@@ -1,0 +1,19 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-resources
+spec:
+  destination:
+    namespace: cert-manager-resources
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/cert-manager-resources/development
+    repoURL: git@github.com:adzuci/kubernetes.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+

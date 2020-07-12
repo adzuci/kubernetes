@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: atlantis
+spec:
+  serviceName: atlantis
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  selector:
+    matchLabels:
+      app: atlantis
+  template:
+    metadata:
+      labels:
+        app: atlantis
+    spec:
+      serviceAccountName: atlantis
+      securityContext:
+        fsGroup: 1000 # Atlantis group (1000) read/write access to volumes.
+      volumes:
+      - name: consul-template-config
+        configMap:
+          name: consul-template-config
+      - name: config-volume
+        configMap:
+          name: env-config
+      - name: vault-secrets
+        emptyDir:
+          medium: Memory
+      - name: tmpfs-data
+        emptyDir: {}
+      - name: tmpfs-user-data
+        emptyDir: {}
+      - name: tmpfs-tmp
+        emptyDir: {}
+      - name: repo-config
+        configMap:
+          name:  atlantis-repo-config
+      initContainers:
+      - name: vault-authenticator
+        env:
+        - name: VAULT_ADDR
+          valueFrom:
+            configMapKeyRef:
+              key: VAULT_ADDR
+              name: env-config
+        - name: VAULT_ROLE
+          valueFrom:
+            configMapKeyRef:
+              key: VAULT_ROLE
+              name: env-config
+        - name: TOKEN_DEST_PATH
+          value: /vault/secrets/.vault-token
+        - name: ACCESSOR_DEST_PATH
+          value: /vault/secrets/.vault-accessor
+        image: adzuci/vault-kubernetes-authenticator:latest
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /vault/secrets
+          name: vault-secrets
+      - name: secret-render
+        command:
+        - /bin/sh
+        - -c
+        - |
+          /bin/consul-template -config /consul-template-config/config.hcl -once
+        env:
+        - name: VAULT_ADDR
+          valueFrom:
+            configMapKeyRef:
+              key: VAULT_ADDR
+              name: env-config
+        image: hashicorp/consul-template:0.20.0-light
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /vault/secrets
+          name: vault-secrets
+        - mountPath: /consul-template-config
+          name: consul-template-config
+      containers:
+      - name: atlantis
+        image: runatlantis/atlantis:v0.11.1
+        args: [ "source /vault/secrets/.env && docker-entrypoint.sh server" ]
+        command:
+        - /bin/sh
+        - -c
+        - --
+        env:
+        - name: ATLANTIS_REPO_CONFIG
+          value: /etc/atlantis/repos.yaml
+        - name: ATLANTIS_DATA_DIR
+          value: /atlantis
+        - name: ATLANTIS_REPO_WHITELIST
+          value: github.com/adzuci/terraform
+        - name: ATLANTIS_GH_USER
+          value: adzuci
+        - name: ATLANTIS_PORT
+          value: "4141" # Kubernetes sets an ATLANTIS_PORT variable so we need to override.
+        - name: ATLANTIS_ATLANTIS_URL
+          value: "https://atlantis.dyhedral.com/"
+        - name: ATLANTIS_CHECKOUT_STRATEGY
+          value: merge
+        volumeMounts:
+        - name: atlantis-data
+          mountPath: /atlantis
+        - name: vault-secrets
+          mountPath: /vault/secrets
+        - name: repo-config
+          mountPath: /etc/atlantis/repos.yaml
+          subPath: repos.yaml
+          readOnly: true
+        ports:
+        - name: atlantis
+          containerPort: 4141
+        resources:
+          requests:
+            memory: 4Gi
+            cpu: 1
+          limits:
+            memory: 8Gi
+            cpu: 2
+        livenessProbe:
+          # We only need to check every 60s since Atlantis is not a
+          # high-throughput service.
+          periodSeconds: 60
+          httpGet:
+            path: /healthz
+            port: 4141
+            # If using https, change this to HTTPS
+            scheme: HTTP
+        readinessProbe:
+          periodSeconds: 60
+          httpGet:
+            path: /healthz
+            port: 4141
+            # If using https, change this to HTTPS
+            scheme: HTTP
+  volumeClaimTemplates:
+  - metadata:
+      name: atlantis-data
+    spec:
+      accessModes: ["ReadWriteOnce"] # Volume should not be shared by multiple nodes.
+      resources:
+        requests:
+          # The biggest thing Atlantis stores is the Git repo when it checks it out.
+          # It deletes the repo after the pull request is merged.
+          storage: 5Gi

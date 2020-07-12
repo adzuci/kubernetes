@@ -1,0 +1,46 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: atlantis-internal-ingress
+  namespace: atlantis
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: internal
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+  - host: atlantis.dyhedral.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: atlantis
+          servicePort: 80
+  tls:
+  - secretName: atlantis-tls
+    hosts:
+    - atlantis.dyhedral.com
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: atlantis-github-webhook-ingress
+  namespace: atlantis
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: github-webhook
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+  - host: atlantis-k8s-github-webhook.dyhedral.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: atlantis
+          servicePort: 80
+  tls:
+  - secretName: atlantis-webhook-tls
+    hosts:
+    - atlantis-k8s-github-webhook.dyhedral.com

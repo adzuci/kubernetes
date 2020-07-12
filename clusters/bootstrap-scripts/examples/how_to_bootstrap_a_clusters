@@ -1,0 +1,9 @@
+cd kubernetes/clusters/bootstrap-scripts
+
+kubectl config use-context arn:aws:eks:us-east-1:<id>:cluster/prod-dyhedral-eks
+export VAULT_TOKEN=fffffffffffff
+export VAULT_ADDR=https://vault.example.com
+export KUBERNETES_URL=https://<id>.gr7.us-east-1.eks.amazonaws.com
+export VAULT_SA_NAMESPACE=vault
+export VAULT_SA_NAME=prod-vault
+./setup-vault-k8s-auth.sh

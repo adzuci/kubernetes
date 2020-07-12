@@ -1,0 +1,9 @@
+mysql:
+  enabled: true
+  name: mysql
+  fullnameOverride: mysql
+  image: mysql
+  imageTag: 5.6.45
+  mysqlDatabase: db
+  mysqlUser: db-user
+  mysqlPassword: db-pass

@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argocd-server
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::257477529851:role/argocd-server"

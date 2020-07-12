@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-development-bootstrapper-cm
+  namespace: vault
+data:
+  start.sh: |
+    #!/bin/sh
+
+    export VAULT_ADDR=http://development-vault:8200
+
+    vault status
+
+    if vault status | grep Initialized | grep false ; then
+
+      set -ex
+
+      echo "Initializing vault..."
+      vault operator init -key-threshold=1 -key-shares=1 | tee bootstrap_secrets
+      export VAULT_TOKEN=$(cat bootstrap_secrets | grep 'Initial Root Token' | cut -d ' ' -f4)
+      export UNSEAL_KEY_1=$(cat bootstrap_secrets | grep 'Unseal Key 1' | cut -d ' ' -f4)
+
+      # If you are doing this for real dont inline these
+      # but this is a development environment
+      vault operator unseal $UNSEAL_KEY_1
+
+      if ! vault auth list | grep kubernetes ; then
+        vault auth enable kubernetes
+      fi
+
+      export SA_JWT_TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
+      export SA_CA_CRT=$(cat /run/secrets/kubernetes.io/serviceaccount/ca.crt)
+      export KUBERNETES_URL=https://kubernetes.default.svc
+
+      vault write auth/kubernetes/config token_reviewer_jwt="$SA_JWT_TOKEN" kubernetes_host="$KUBERNETES_URL:443" kubernetes_ca_cert="$SA_CA_CRT"
+      vault secrets disable secret/
+
+      vault policy write vault-acl-job-policy /vault-development-bootstrapper-cm/vault-acl-job-policy.hcl
+      vault write auth/kubernetes/role/vault-acl-job bound_service_account_names=vault-acl-job bound_service_account_namespaces=vault policies=vault-acl-job-policy ttl=1h
+      /vault-development-bootstrapper-cm/secrets.sh
+
+
+      set +ex
+      echo "\n\n\n\n\n"
+      echo "Unseal key is: $UNSEAL_KEY_1"
+
+      echo ""
+      echo "Root token is: $VAULT_TOKEN"
+      echo ""
+
+      echo "Write these down for the lifetime of this cluster, if you lose the unseal key you will need to rebootstrap"
+
+    else
+      echo "Skipping initialization of vault..."
+    fi
+
+  secrets.sh: |
+    #!/bin/sh -x
+
+    if ! vault secrets list | grep 'kv/' | grep kv; then
+      vault secrets enable -path=kv kv-v2
+    fi
+    
+    vault kv put kv/app TEST=test
+ 
+  vault-acl-job-policy.hcl: |
+    # Manage auth methods broadly across Vault
+    path "auth/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # Create, update, and delete auth methods
+    path "sys/auth/*"
+    {
+      capabilities = ["create", "update", "delete", "sudo"]
+    }
+
+    # List auth methods
+    path "sys/auth"
+    {
+      capabilities = ["read"]
+    }
+
+    # List existing policies
+    path "sys/policies/acl"
+    {
+      capabilities = ["list"]
+    }
+
+    # Create and manage ACL policies
+    path "sys/policies/acl/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # List, create, update, and delete key/value secrets
+    path "secret/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # Manage secrets engines
+    path "sys/mounts/*"
+    {
+      capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+    }
+
+    # List existing secrets engines.
+    path "sys/mounts"
+    {
+      capabilities = ["read"]
+    }
+
+    # Read health checks
+    path "sys/health"
+    {
+      capabilities = ["read", "sudo"]
+    }

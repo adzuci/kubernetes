@@ -1,0 +1,19 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-development-bootstrapper
+spec:
+  destination:
+    namespace: vault-development-bootstrapper
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/vault-development-bootstrapper
+    repoURL: git@github.com:adzuci/kubernetes.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+

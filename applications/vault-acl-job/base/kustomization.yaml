@@ -1,0 +1,9 @@
+resources:
+  - deployment.yaml
+
+configMapGenerator:
+- name: vault-acl-job-cm
+  literals: 
+    - VAULT_ROLE="vault-acl-job"
+
+namespace: vault

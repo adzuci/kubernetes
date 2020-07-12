@@ -1,0 +1,11 @@
+
+bases: 
+  - ../vendor
+
+patchesJson6902:
+- target:
+    version: v1
+    kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+  path: role-arn.yaml

@@ -1,0 +1,56 @@
+---
+# Copied from https://argoproj.github.io/argo-cd/operator-manual/ingress/
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: internal
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # If you encounter a redirect loop or are getting a 307 response code
+    # then you need to force the nginx ingress to connect to the backend using HTTPS.
+    #
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  rules:
+  - host: argocd.dyhedral.com
+    http:
+      paths:
+      - backend:
+          serviceName: argocd-server
+          servicePort: https
+        path: /
+  tls:
+  - secretName: argocd-secret # do not change, this is provided by Argo CD
+    hosts:
+    - argocd.dyhedral.com
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: argocd-github-webhook-ingress
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: github-webhook
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # If you encounter a redirect loop or are getting a 307 response code
+    # then you need to force the nginx ingress to connect to the backend using HTTPS.
+    #
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  rules:
+  - host: argocd-github-webhook.dyhedral.com
+    http:
+      paths:
+      - backend:
+          serviceName: argocd-server
+          servicePort: https
+        path: /
+  tls:
+  - secretName: argocd-secret # do not change, this is provided by Argo CD
+    hosts:

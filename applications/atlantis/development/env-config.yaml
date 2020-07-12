@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+data:
+  VAULT_ADDR: "http://development-vault.vault:8200"
+  VAULT_ROLE: atlantis
+  CLUSTER_NAME: development-k8s

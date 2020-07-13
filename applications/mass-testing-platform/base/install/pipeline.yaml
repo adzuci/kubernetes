@@ -1,0 +1,18 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mass-testing-platform-manifests
+spec:
+  destination:
+    namespace: mass-testing-platform
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: argocd/applications/mass-testing-platform
+    repoURL: git@github.com:adzuci/kubernetes.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,97 @@
+# Mass Testing Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mass-testing-platform
+  namespace: mass-testing-platform
+  labels:
+    app.kubernetes.io/name: mass-testing-platform
+    app.kubernetes.io/instance: mass-testing-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mass-testing-platform
+      app.kubernetes.io/instance: mass-testing-platform
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mass-testing-platform
+        app.kubernetes.io/instance: mass-testing-platform
+    spec:
+      serviceAccountName: mass-testing-platform
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: consul-template-config
+          configMap:
+            name: consul-template-config
+        - name: config-volume
+          configMap:
+            name: env-config
+        - name: vault-secrets
+          emptyDir:
+            medium: Memory
+        - name: tmp
+          hostPath:
+            path: /tmp
+        - name: docker-sock
+          hostPath:
+            path: /var/run
+      initContainers:
+      - name: vault-authenticator
+        env:
+        - name: VAULT_ADDR
+          valueFrom:
+            configMapKeyRef:
+              key: VAULT_ADDR
+              name: env-config
+        - name: VAULT_ROLE
+          valueFrom:
+            configMapKeyRef:
+              key: MASS_TESTING_PLATFORM_VAULT_ROLE
+              name: env-config
+        - name: TOKEN_DEST_PATH
+          value: /vault/secrets/.vault-token
+        - name: ACCESSOR_DEST_PATH
+          value: /vault/secrets/.vault-accessor
+        image: adzuci/vault-kubernetes-authenticator:latest
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /vault/secrets
+          name: vault-secrets
+      - name: secret-render
+        command:
+        - /bin/sh
+        - -c
+        - |
+          /bin/consul-template -config /consul-template-config/config.hcl -once
+        env:
+        - name: VAULT_ADDR
+          valueFrom:
+            configMapKeyRef:
+              key: VAULT_ADDR
+              name: env-config
+        image: hashicorp/consul-template:0.20.0-light
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /vault/secrets
+          name: vault-secrets
+        - mountPath: /consul-template-config
+          name: consul-template-config
+      containers:
+      - name: mass-testing-platform
+        image: adzuci/masstestingplatform:latest
+        volumeMounts:
+          - mountPath: /var/run
+            name: docker-sock
+          - mountPath: /tmp
+            name: tmp
+          - mountPath: /vault/secrets
+            name: vault-secrets
+        # env:
+        #   - name: KEY
+        #     value: '{{ .Data.data.KEY }}'
+        ports:
+        - name: mass-testing-platform
+          containerPort: 4143

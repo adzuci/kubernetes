@@ -5,12 +5,13 @@ bases:
 - ../../../applications/argocd
 - ../../../applications/metrics-server/install
 - ../../../applications/kube-state-metrics/install
-#- ../../../applications/vault/install
-#- ../../../applications/vault-acl-job/prod/install
+- ../../../applications/vault/install
+- ../../../applications/vault-acl-job/prod/install
 - ../../../applications/public-ingress/install
 - ../../../applications/cluster-autoscaler/install
-#- ../../../applications/cert-manager-resources/prod/install
-#- ../../../applications/cert-manager/prod/install
+- ../../../applications/cert-manager-resources/prod/install
+- ../../../applications/cert-manager/prod/install
+- ../../../applications/mass-testing-platform/prod/install
 
 namePrefix: prod-
 patches:

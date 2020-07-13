@@ -14,4 +14,4 @@ spec:
     privateKeySecretRef:
       name: letsencrypt
     solvers:
-      - http01:
+      - http01: {}

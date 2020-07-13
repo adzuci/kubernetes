@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+data:
+  VAULT_ADDR: "http://development-vault.vault:8200"
+  MASS_TESTING_VAULT_ROLE: mass-testing-platform

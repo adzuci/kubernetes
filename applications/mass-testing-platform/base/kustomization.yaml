@@ -1,0 +1,5 @@
+resources:
+- ns.yaml
+- serviceaccount.yaml
+- consul-template-config.yaml
+- mass-testing-platform.yaml

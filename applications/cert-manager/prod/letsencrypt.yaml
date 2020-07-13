@@ -12,13 +12,6 @@ spec:
     email: admin@dyhedral.com
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
-     name: letsencrypt
-    # Enable the HTTP-01 challenge provider
+      name: letsencrypt
     solvers:
-      - selector:
-          dnsZones:
-            - "dyhedral.com"
-        dns01:
-          route53:
-            region: us-east-1
-            hostedZoneID: <id>
+      - http01: {}

@@ -2,8 +2,6 @@
 
 # This script configures the vault kubernetes auth plugin side of the Vault k8s auth mechanism:
 # https://www.vaultproject.io/docs/auth/kubernetes/
-# to use the kubernetes service account verification endpoint for authentication.
-# It provides the plugin with the service account CA CRT and JWT for this purpose.
 
 # The helm chart as of the time of this writing installs a cluster role binding which allows the vault service account to
 # use this K8s api endpoint:

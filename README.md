@@ -71,6 +71,15 @@ If you hit this before you configure the autoscaler you may need to manually sca
 
 https://github.com/argoproj/argo-cd/blob/master/docs/faq.md#i-forgot-the-admin-password-how-do-i-reset-it
 
+### Delete All The Things
+
+```
+kubectl delete daemonsets,replicasets,services,deployments,pods,rc --all
+cd ../terraform/plans/dyhedral
+terraform destroy -target=module.eks-cluster
+terraform plan && terraform apply
+```
+
 ## Up Next:
 
 1. Deploy ingress & other apps.

@@ -12,6 +12,8 @@ https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-a
 
 ```
 brew install awscli docker helm kubectl
+brew tap argoproj/tap
+brew install argoproj/tap/argocd
 ```
 
 Install Kustomize:
@@ -40,6 +42,12 @@ Connect To ArgoCD:
 kubectl port-forward svc/argocd-server -n argocd 9998:443
 open localhost:9998
 ```
+
+If Needed Register the Cluster
+```
+argocd cluster add arn:aws:eks:us-east-1:<id>:cluster/prod-dyhedral-eks
+```
+
 
 ## Destroy ArgoCD and Applications To The Prod Cluster
 

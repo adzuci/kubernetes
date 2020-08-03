@@ -5,4 +5,4 @@ metadata:
   name: mass-testing-platform-manifests
 spec:
   source:
-    path: argocd/applications/mass-testing-platform/tools
+    path: argocd/applications/mass-testing-platform/prod

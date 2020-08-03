@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 bases:
-- ../../../applications/argocd
+- ../../../applications/argocd/install
 - ../../../applications/metrics-server/install
 - ../../../applications/kube-state-metrics/install
 - ../../../applications/vault/install

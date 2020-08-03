@@ -13,19 +13,6 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: argocd-dex-server
-spec:
-  template:
-    spec:
-      initContainers:
-      - name: argocd-dex-server
-        image: adzuci/argocd:v1.5.1
-      - name: copyutil
-        image: adzuci/argocd:v1.5.1
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: argocd-repo-server
 spec:
   template:

@@ -12,7 +12,6 @@ data:
       sshPrivateKeySecret:
         key: sshPrivateKey
         name: repo-kubernetes-deploy-key
-    - url: https://<url>
   resource.customizations: |
     admissionregistration.k8s.io/MutatingWebhookConfiguration:
       ignoreDifferences: |

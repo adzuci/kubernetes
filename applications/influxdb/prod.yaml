@@ -1,0 +1,20 @@
+influxdb:
+  image:
+    tag: "1.8.9"
+  setDefaultUser:
+    enabled: true
+    image: lucashalbert/curl:arm64v8-7.76.1-r0
+  startupProbe:
+    enabled: true
+  persistence:
+    size: 50Gi
+  ingress:
+    enabled: true
+    hostname: influxdb.prod.dyhedral.com
+    className: "traefik"
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-live
+    tls:
+    - secretName: influxdb-cert
+      hosts:
+      - influxdb.prod.dyhedral.com

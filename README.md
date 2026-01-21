@@ -7,6 +7,7 @@ This repository contains Kustomize and Helm resources for deploying applications
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Deployment](#deployment)
+- [Testing](#testing)
 - [Repository Structure](#repository-structure)
 - [Troubleshooting](#troubleshooting)
 - [Future Enhancements](#future-enhancements)
@@ -90,6 +91,30 @@ sudo apt-get install kustomize
 kustomize build applications/argocd/prod | kubectl delete -f -
 kustomize build clusters/prod | kubectl delete -f -
 ```
+
+## Testing
+
+This repository includes automated tests to validate all Kubernetes manifests.
+
+### Running Tests Locally
+
+```bash
+# Run all validation tests
+./tests/validate.sh
+```
+
+This will validate that all Kustomize builds succeed and manifests are properly formatted.
+
+### Continuous Integration
+
+All tests automatically run on every push and pull request via GitHub Actions. See `.github/workflows/validate.yml` for details.
+
+The CI pipeline includes:
+- YAML linting
+- Kustomize build validation
+- Kubernetes manifest validation
+
+For more information about testing, see [tests/README.md](tests/README.md).
 
 ## Repository Structure
 

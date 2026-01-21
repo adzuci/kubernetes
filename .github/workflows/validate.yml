@@ -1,0 +1,85 @@
+name: Validate Kubernetes Manifests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML files
+        run: |
+          find applications clusters -name "*.yaml" -o -name "*.yml" | xargs yamllint -d "{extends: default, rules: {line-length: {max: 120}, document-start: disable}}"
+
+  kustomize-build:
+    name: Kustomize Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Validate Kustomize builds
+        run: |
+          echo "Validating kustomize builds..."
+          
+          # Find all kustomization.yaml files and validate they build
+          for kustomization in $(find . -name "kustomization.yaml"); do
+            dir=$(dirname "$kustomization")
+            echo "Building $dir"
+            if ! kustomize build "$dir" > /dev/null 2>&1; then
+              echo "❌ Failed to build $dir"
+              exit 1
+            else
+              echo "✅ Successfully built $dir"
+            fi
+          done
+
+  kubeval:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Install kubeconform
+        run: |
+          wget https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate manifests with kubeconform
+        run: |
+          echo "Validating Kubernetes manifests..."
+          
+          # Validate key kustomize builds
+          for dir in clusters/prod clusters/development; do
+            if [ -f "$dir/kustomization.yaml" ]; then
+              echo "Validating $dir"
+              kustomize build "$dir" | kubeconform -summary -ignore-missing-schemas || true
+            fi
+          done

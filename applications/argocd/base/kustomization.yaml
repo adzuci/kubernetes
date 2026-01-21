@@ -1,9 +1,8 @@
-bases:
-- github.com/argoproj/argo-cd/manifests/cluster-install?ref=v2.12.3
 resources:
-  - argocd-ns.yaml
-  - argocd-deploy-key.yaml
-patchesStrategicMerge:
-  - argocd-cm.yaml
-  - argocd-deployments-image.yaml
+- github.com/argoproj/argo-cd/manifests/cluster-install?ref=v2.12.3
+- argocd-ns.yaml
+- argocd-deploy-key.yaml
+patches:
+  - path: argocd-cm.yaml
+  - path: argocd-deployments-image.yaml
 namespace: argocd

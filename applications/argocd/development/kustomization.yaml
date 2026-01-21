@@ -1,4 +1,4 @@
-bases:
+resources:
 - ../base
-patchesStrategicMerge:
-  - argocd-secret.yaml
+patches:
+  - path: argocd-secret.yaml

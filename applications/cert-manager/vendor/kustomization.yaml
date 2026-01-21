@@ -1,3 +1,5 @@
+# cert-manager v1.15.3 manifest
+# Downloaded from: https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml
 resources:
   - ./cert-manager-v1.15.3.yaml
 

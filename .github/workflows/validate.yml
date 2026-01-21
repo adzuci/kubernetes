@@ -24,7 +24,13 @@ jobs:
 
       - name: Lint YAML files
         run: |
-          find applications clusters -name "*.yaml" -o -name "*.yml" | xargs yamllint -d "{extends: default, rules: {line-length: {max: 120}, document-start: disable}}"
+          # Find and lint YAML files
+          yaml_files=$(find applications clusters -name "*.yaml" -o -name "*.yml" 2>/dev/null || true)
+          if [ -n "$yaml_files" ]; then
+            echo "$yaml_files" | xargs yamllint -d "{extends: default, rules: {line-length: {max: 120}, document-start: disable}}"
+          else
+            echo "No YAML files found to lint"
+          fi
 
   kustomize-build:
     name: Kustomize Build Validation
@@ -77,9 +83,11 @@ jobs:
           echo "Validating Kubernetes manifests..."
           
           # Validate key kustomize builds
+          # Note: Using -ignore-missing-schemas as some CRDs may not be in the schema registry
+          # Validation will still catch structural issues and invalid resource definitions
           for dir in clusters/prod clusters/development; do
             if [ -f "$dir/kustomization.yaml" ]; then
               echo "Validating $dir"
-              kustomize build "$dir" | kubeconform -summary -ignore-missing-schemas || true
+              kustomize build "$dir" | kubeconform -summary -ignore-missing-schemas
             fi
           done

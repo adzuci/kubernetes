@@ -46,6 +46,9 @@ brew install kustomize
 
 # Linux (Ubuntu/Debian)
 sudo apt-get install kustomize
+
+# Or use snap (recommended for Linux)
+sudo snap install kustomize
 ```
 
 **Note:** This README now includes both macOS and Linux instructions.

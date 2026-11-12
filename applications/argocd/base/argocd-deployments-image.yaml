@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: argocd-application-controller
 spec:
@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: argocd-application-controller
-        image: adzuci/argocd:v1.5.1
+        image: quay.io/argoproj/argocd:v2.12.3
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: argocd-repo-server
-        image: adzuci/argocd:v1.5.1
+        image: quay.io/argoproj/argocd:v2.12.3
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,4 +30,4 @@ spec:
     spec:
       containers:
       - name: argocd-server
-        image: adzuci/argocd:v1.5.1
+        image: quay.io/argoproj/argocd:v2.12.3

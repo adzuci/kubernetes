@@ -1,100 +1,179 @@
 # Kubernetes
 
-This repo contains the kustomize and helm resources that I have used to spin up resources in Kubernetes.
+This repository contains Kustomize and Helm resources for deploying applications to Kubernetes clusters using ArgoCD.
 
-# Contributing
+## Table of Contents
 
-## Get an AWS account
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [Repository Structure](#repository-structure)
+- [Troubleshooting](#troubleshooting)
+- [Future Enhancements](#future-enhancements)
+
+## Prerequisites
+
+### Get an AWS account
 
 https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/
 
-## Install Requirements
+## Installation
 
-```
+### Install Required Tools
+
+**macOS:**
+```bash
 brew install awscli docker helm kubectl
 brew tap argoproj/tap
 brew install argoproj/tap/argocd
 ```
 
-Install Kustomize:
+**Install Kustomize:**
 
-```
-curl https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.2.1/kustomize_kustomize.v3.2.1_darwin_amd64 > /usr/local/bin/kustomize
-```
+```bash
+# macOS
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+sudo mv kustomize /usr/local/bin/
 
-Note: This README is macOS specific, feel free to submit a PR with Linux instructions.
+# Linux
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+sudo mv kustomize /usr/local/bin/
 
-## Deploy ArgoCD and Applications To The Prod Cluster
+# Or use package manager
+# macOS
+brew install kustomize
 
-Ensure the cluster ID is set in `applications/argocd/prod/cluster-secret-prod-dyhedral.yaml` and `clusters/prod/installed_applications/kustomization.yaml`.  You can find this in https://console.aws.amazon.com/eks/home, e.g.
-```
-<id>.gr7.us-east-1.eks.amazonaws.com
-```
+# Linux (Ubuntu/Debian)
+sudo apt-get install kustomize
 
-Deploy ArgoCD & Applications:
-```
-kustomize build applications/argocd/prod | kubectl apply -f -
-kustomize build clusters/prod | kubectl apply -f -
-```
-
-Connect To ArgoCD:
-```
-kubectl port-forward svc/argocd-server -n argocd 9998:443
-open localhost:9998
+# Or use snap (recommended for Linux)
+sudo snap install kustomize
 ```
 
-If Needed Register the Cluster
-```
-argocd cluster add arn:aws:eks:us-east-1:<id>:cluster/prod-dyhedral-eks
-```
+**Note:** This README now includes both macOS and Linux instructions.
 
+## Deployment
 
-## Destroy ArgoCD and Applications To The Prod Cluster
+### Deploy ArgoCD and Applications to the Production Cluster
 
-```
+1. **Configure Cluster Settings**
+
+   Ensure the cluster ID is set in:
+   - `applications/argocd/prod/cluster-secret-prod-dyhedral.yaml`
+   - `clusters/prod/installed_applications/kustomization.yaml`
+   
+   You can find your cluster ID in the [AWS EKS Console](https://console.aws.amazon.com/eks/home), e.g.:
+   ```
+   <id>.gr7.us-east-1.eks.amazonaws.com
+   ```
+
+2. **Deploy ArgoCD & Applications:**
+
+   ```bash
+   kustomize build applications/argocd/prod | kubectl apply -f -
+   kustomize build clusters/prod | kubectl apply -f -
+   ```
+
+3. **Connect to ArgoCD:**
+
+   ```bash
+   kubectl port-forward svc/argocd-server -n argocd 9998:443
+   open http://localhost:9998
+   ```
+
+4. **Register the Cluster (If Needed):**
+
+   ```bash
+   argocd cluster add arn:aws:eks:us-east-1:<id>:cluster/prod-dyhedral-eks
+   ```
+
+### Destroy ArgoCD and Applications
+
+```bash
 kustomize build applications/argocd/prod | kubectl delete -f -
 kustomize build clusters/prod | kubectl delete -f -
 ```
 
-## What's In This Repo?
+## Testing
 
-applications        applications definitions / config
-clusters            Maps application definitions to clusters
+This repository includes automated tests to validate all Kubernetes manifests.
+
+### Running Tests Locally
+
+```bash
+# Run all validation tests
+./tests/validate.sh
+```
+
+This will validate that all Kustomize builds succeed and manifests are properly formatted.
+
+### Continuous Integration
+
+All tests automatically run on every push and pull request via GitHub Actions. See `.github/workflows/validate.yml` for details.
+
+The CI pipeline includes:
+- YAML linting
+- Kustomize build validation
+- Kubernetes manifest validation
+
+For more information about testing, see [tests/README.md](tests/README.md).
+
+## Repository Structure
+
+```
+.
+├── applications/           # Application definitions and configurations
+│   ├── argocd/            # ArgoCD installation and configuration
+│   ├── cert-manager/      # Certificate management
+│   ├── cluster-autoscaler/# Kubernetes cluster autoscaler
+│   ├── metrics-server/    # Kubernetes metrics server
+│   ├── mysql/             # MySQL database
+│   ├── vault/             # HashiCorp Vault
+│   └── ...                # Other applications
+└── clusters/              # Maps application definitions to specific clusters
+    ├── development/       # Development cluster configuration
+    └── prod/              # Production cluster configuration
+```
 
 ## Troubleshooting
 
 ### Pod Limit
 
-If you can't seem to spin up pods you may be at the limit.  You can check by running:
+If you can't seem to spin up pods, you may be at the limit. Check by running:
 
-```
+```bash
 kubectl get node -o yaml | grep pods
-      pods: "17" -> Number of pods running.
-      pods: "17" -> Limit based off of node sizes.
+#   pods: "17" -> Number of pods running
+#   pods: "17" -> Limit based on node sizes
 ```
 
-If you hit this before you configure the autoscaler you may need to manually scale up in https://console.aws.amazon.com/ec2autoscaling
+If you hit this limit before configuring the autoscaler, you may need to manually scale up in the [AWS EC2 Auto Scaling Console](https://console.aws.amazon.com/ec2autoscaling).
 
 ### Admin Password
 
-https://github.com/argoproj/argo-cd/blob/master/docs/faq.md#i-forgot-the-admin-password-how-do-i-reset-it
+If you forgot the ArgoCD admin password, see: https://argo-cd.readthedocs.io/en/stable/faq/#i-forgot-the-admin-password-how-do-i-reset-it
 
-### Delete All The Things
+### Delete All Resources
 
-```
+**Warning:** This will delete all resources in your cluster!
+
+```bash
 kubectl delete daemonsets,replicasets,services,deployments,pods,rc --all
 cd ../terraform/plans/dyhedral
 terraform destroy -target=module.eks-cluster
 terraform plan && terraform apply
 ```
 
-## Up Next:
+## Future Enhancements
 
-1. Deploy ingress & other apps.
-2. Finalize & deploy masstestingplatform deployment.
-3. Point DNS at new load balancer manually.
+### Short-term Goals
 
-## Reach Goals
+1. Deploy ingress & other applications
+2. Finalize & deploy mass testing platform deployment
+3. Point DNS at new load balancer manually
 
-1. Set up Route53 zone.
-2. Set up extrenaldns.
+### Long-term Goals
+
+1. Set up Route53 zone
+2. Set up ExternalDNS
